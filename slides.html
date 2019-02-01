@@ -26,7 +26,12 @@
         unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215;
       }
 
-      body { font-family: 'Droid Serif'; }
+      body {
+          font-family: 'Droid Serif';
+      }
+      li {
+          line-height: 1.5em;
+      }
       h1, h2, h3 {
         font-family: 'Yanone Kaffeesatz';
         font-weight: normal;
@@ -39,6 +44,9 @@
       .outline {
           color: #999;
       }
+      .white {
+          color: white;
+      }
       .current {
           color: black;
           font-weight: bold;
@@ -49,13 +57,18 @@
 
     <textarea id="source">
 
-class: center, middle
+class: center, middle, white
+background-image: url(borg-cube.jpg)
 
 # Persistence Is Futile
+
+## Das Nachspiel einer außergewöhnlichen Migration
 
 Manuel Reinhardt - Syslab.com - reinhardt@syslab.com
 
 ???
+
+# Note to self
 
 * Clone presentation, move to workspace 2, move to external screen
 * Activate presentation mode
@@ -67,7 +80,77 @@ Manuel Reinhardt - Syslab.com - reinhardt@syslab.com
 
 # Disclaimer
 
-Persistence is not futile but pretty awesome
+Persistence is not actually futile
+
+???
+
+# Gliederung
+
+* Migration
+* Probleme tauchen auf
+* Durchbruch
+* Des Rätsels Lösung
+* Wieder etwas gelernt
+
+---
+
+# Die Migration
+
+* siehe [Alessandros Vortrag auf der PloneConf 2017](https://docs.google.com/presentation/d/e/2PACX-1vTEDeLAPnrDL11p8yvNCa9BEyvxCNY7QrCa3oLjDVj-fRhsS1EzyEIzZTQKpyS9vm69Rl0sGMhp57NJ/pub?start=false&loop=false&delayms=3000&slide=id.p) (Englisch)
+* Prä-Quaive -> Quaive
+--
+
+* Arbeitsräume: Bereiche für die Zusammenarbeit von Teams
+--
+
+* Neue Klassen für Arbeitsräume
+
+--
+
+```python
+obj = Workspace(workspace_type='generic')
+
+if obj.workspace_type == 'generic':
+    obj.__class__ = GenericWorkspaceFolder
+```
+
+---
+
+# Ärger
+
+* Arbeitsräume werden rückfällig
+--
+
+![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
+--
+
+* Farben in der Übersicht falsch
+--
+
+* Fehler beim Zugriff
+
+---
+
+![Mehrere Instanzen](instances-1.svg)
+
+---
+
+# Muster
+
+* manche Instanzen werfen Fehler, andere nicht
+
+---
+
+# Vielen Dank!
+
+Syslab.com - http://www.syslab.com/
+
+* Intranets
+* Gefährdungsbeurteilung
+
+.center[![Syslab.com Logo](logo_syslabcom_smaller.jpg)]
+
+Image credit: https://plainclothessuperheroes.wordpress.com/2012/03/01/a-supervillain-response-to-geek-showdown-star-trek-vs-star-wars/
 
     </textarea>
 
