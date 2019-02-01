@@ -127,7 +127,18 @@ if obj.workspace_type == 'generic':
 * Farben in der Übersicht falsch
 --
 
-* Fehler beim Zugriff
+* → Klassen falsch
+--
+
+* Sporadisch Fehler beim Zugriff
+
+---
+
+# Muster
+
+* Alle 7 Requests ein Fehler
+* Wir haben 7 Zope-Instanzen (ZEO-Clients)
+* → manche Instanzen werfen Fehler, andere nicht
 
 ---
 
@@ -137,7 +148,84 @@ if obj.workspace_type == 'generic':
 
 # Muster
 
-* manche Instanzen werfen Fehler, andere nicht
+* Debugger in eine Instanz mit Fehler
+* Fehler weg
+* WTF.
+* 💡→ Instanz-Cache
+* Aber was stimmt denn nun nicht mit unseren Klassen?
+
+---
+
+# Der Nebel lichtet sich
+
+* Gruppierungen: Klammern um eine Menge von Arbeitsräumen
+* Bestimmte Gruppierungen mit vielen Arbeitsräumen häufig betroffen
+* Muss nichts heißen - je mehr Arbeitsräume desto höhere Wahrscheinlichkeit für Fehler
+* Aber dann: Problem reproduziert!
+* Instanz frisch hoch fahren und für einen Arbeitsraum alle Geschwister anzeigen → ⚡
+
+
+![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
+
+---
+
+# Durchbruch
+
+* Gruppierungen implementiert als Relationen (z3c.relationfield)
+* benutzt zope.intid um Objekte zu identifizieren
+* intids sind zentral in einem IOBTree gespeichert
+```python
+>>> intids[123]
+<Workspace at 0x12345678>
+```
+* Ups! (Sollte GenericWorkspaceFolder sein)
+```python
+>>> portal['workspaces']['my_generic_workspace']
+<GenericWorkspaceFolder at 0x12345678>
+```
+* WTF.
+* IOBTree enthält nicht die eigentlichen Objekte
+* ... sondern Persistent References, die erlauben, "Ghosts" zu laden
+
+---
+
+# Die Geister die ich rief
+
+* Objekte werden aus der ZODB zunächst als "Ghost" geladen
+* Beinahe leere Hülle, keine Attribute
+* Erst beim Zugriff auf ein Attribut wird der Rest nach geladen
+* Beispiel: Plone-Portal wird voll geladen; Unterordner werden als Ghost geladen
+* Spart Speicher und Netz-Bandbreite
+
+---
+
+# Geister mit Klasse
+
+* Persistent References erlauben, "Ghosts" zu laden
+* Minimale Informationen über das Objekt
+* Aber: Klasse wird gespeichert
+* Ghost hat bereits eine Klasse
+* Beim vollen Laden wird Klasse nicht aktualisiert
+* Klasse auf dem Objekt geändert, aber nicht auf der Referenz
+* → Laden über Referenz führt zu Fehlern
+* Klasse landet im Cache der Instanz
+
+---
+
+# Reparatur
+
+* [zodbupdate](https://pypi.org/project/zodbupdate/) rettet uns
+* Geht durch die Datenbank und aktualisiert Referenzen
+* Keine 1:1 Ersetzung von Klassen
+* Workspace → GenericWorkspaceFolder, CommitteeWorkspaceFolder, ...
+* Kleine [Anpassung](https://github.com/syslabcom/zodbupdate/commit/fbd537c992aec4c146cc7dd610e14d30b550f9b9) - Zuordnung von Klassen zu bekannten Objekten
+
+---
+
+# Am Ziel
+
+* Wieder etwas gelernt
+* Kenne deine Datenbank!
 
 ---
 
