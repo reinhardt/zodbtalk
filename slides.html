@@ -104,8 +104,25 @@ Persistence is not actually futile
 --
 
 * Neue Klassen für Arbeitsräume
-
 --
+
+![Klassenstruktur alt und neu](workspace-classes-old-new-1.svg)
+--
+
+* Vorher: eine Klasse für alle Typen Arbeitsraum
+* Nachher: viele Klassen, je eine pro Typ
+
+---
+
+# Die Migration, Forts.
+
+* Standard: Neue Objekte anlegen, Daten rüber schreiben
+--
+
+* Anlegen, Löschen, Indizieren, ... → Teuer!
+--
+
+* 
 
 ```python
 obj = Workspace(workspace_type='generic')
@@ -114,17 +131,23 @@ if obj.workspace_type == 'generic':
     obj.__class__ = GenericWorkspaceFolder
 ```
 
+--
+
+* Legitim in Python → auch in Plone!?!
+--
+
+* Schien monatelang gut zu gehen. Aber dann...
+
 ---
 
 # Ärger
 
-* Arbeitsräume werden rückfällig
---
-
-![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
+* Arbeitsräume machen Unsinn
 --
 
 * Farben in der Übersicht falsch
+
+![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
 --
 
 * → Klassen falsch
@@ -137,7 +160,11 @@ if obj.workspace_type == 'generic':
 # Muster
 
 * Alle 7 Requests ein Fehler
+--
+
 * Wir haben 7 Zope-Instanzen (ZEO-Clients)
+--
+
 * → manche Instanzen werfen Fehler, andere nicht
 
 ---
@@ -149,9 +176,10 @@ if obj.workspace_type == 'generic':
 # Muster
 
 * Debugger in eine Instanz mit Fehler
-* Fehler weg
+* Aber: Fehler weg
 * WTF.
 * 💡→ Instanz-Cache
+* Persistenter Cache (.zec-Dateien) im Debug-Modus nicht benutzt
 * Aber was stimmt denn nun nicht mit unseren Klassen?
 
 ---
@@ -159,33 +187,54 @@ if obj.workspace_type == 'generic':
 # Der Nebel lichtet sich
 
 * Gruppierungen: Klammern um eine Menge von Arbeitsräumen
+--
+
+![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
+--
+
 * Bestimmte Gruppierungen mit vielen Arbeitsräumen häufig betroffen
+--
+
 * Muss nichts heißen - je mehr Arbeitsräume desto höhere Wahrscheinlichkeit für Fehler
+--
+
 * Aber dann: Problem reproduziert!
 * Instanz frisch hoch fahren und für einen Arbeitsraum alle Geschwister anzeigen → ⚡
 
-
-![Arbeitsräume in verschiedenen Farben](workspace-types-1.png)
 
 ---
 
 # Durchbruch
 
 * Gruppierungen implementiert als Relationen (z3c.relationfield)
-* benutzt zope.intid um Objekte zu identifizieren
+* benutzen zope.intid um Objekte zu identifizieren
 * intids sind zentral in einem IOBTree gespeichert
+
+--
+
 ```python
 >>> intids[123]
 <Workspace at 0x12345678>
 ```
+--
+
 * Ups! (Sollte GenericWorkspaceFolder sein)
+--
+
 ```python
 >>> portal['workspaces']['my_generic_workspace']
 <GenericWorkspaceFolder at 0x12345678>
 ```
 * WTF.
+--
+
 * IOBTree enthält nicht die eigentlichen Objekte
-* ... sondern Persistent References, die erlauben, "Ghosts" zu laden
+--
+
+* ... sondern Persistent References
+--
+
+* Diese erlauben, "Ghosts" zu laden
 
 ---
 
@@ -206,8 +255,8 @@ if obj.workspace_type == 'generic':
 * Aber: Klasse wird gespeichert
 * Ghost hat bereits eine Klasse
 * Beim vollen Laden wird Klasse nicht aktualisiert
-* Klasse auf dem Objekt geändert, aber nicht auf der Referenz
-* → Laden über Referenz führt zu Fehlern
+* Unsere Migration: Klasse auf Objekt geändert, aber nicht auf Referenz
+* → Laden über Referenz führt zu Fehlern (alte Klasse)
 * Klasse landet im Cache der Instanz
 
 ---
@@ -216,7 +265,7 @@ if obj.workspace_type == 'generic':
 
 * [zodbupdate](https://pypi.org/project/zodbupdate/) rettet uns
 * Geht durch die Datenbank und aktualisiert Referenzen
-* Keine 1:1 Ersetzung von Klassen
+* Bei uns: Keine 1:1 Ersetzung von Klassen
 * Workspace → GenericWorkspaceFolder, CommitteeWorkspaceFolder, ...
 * Kleine [Anpassung](https://github.com/syslabcom/zodbupdate/commit/fbd537c992aec4c146cc7dd610e14d30b550f9b9) - Zuordnung von Klassen zu bekannten Objekten
 
@@ -226,6 +275,7 @@ if obj.workspace_type == 'generic':
 
 * Wieder etwas gelernt
 * Kenne deine Datenbank!
+* Wisse, womit du davon kommen kannst!
 
 ---
 
@@ -238,7 +288,7 @@ Syslab.com - http://www.syslab.com/
 
 .center[![Syslab.com Logo](logo_syslabcom_smaller.jpg)]
 
-Image credit: https://plainclothessuperheroes.wordpress.com/2012/03/01/a-supervillain-response-to-geek-showdown-star-trek-vs-star-wars/
+Titelbild credit: https://plainclothessuperheroes.wordpress.com/2012/03/01/a-supervillain-response-to-geek-showdown-star-trek-vs-star-wars/
 
     </textarea>
 
