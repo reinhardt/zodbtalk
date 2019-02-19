@@ -97,7 +97,7 @@ Persistence is not actually futile
 # Die Migration
 
 * siehe [Alessandros Vortrag auf der PloneConf 2017](https://docs.google.com/presentation/d/e/2PACX-1vTEDeLAPnrDL11p8yvNCa9BEyvxCNY7QrCa3oLjDVj-fRhsS1EzyEIzZTQKpyS9vm69Rl0sGMhp57NJ/pub?start=false&loop=false&delayms=3000&slide=id.p) (Englisch)
-* Prä-Quaive -> Quaive
+* Quaive-Vorgänger -> Quaive
 --
 
 * Arbeitsräume: Bereiche für die Zusammenarbeit von Teams
@@ -105,10 +105,7 @@ Persistence is not actually futile
 
 * Neue Klassen für Arbeitsräume
 --
-
 ![Klassenstruktur alt und neu](workspace-classes-old-new-1.svg)
---
-
 * Vorher: eine Klasse für alle Typen Arbeitsraum
 * Nachher: viele Klassen, je eine pro Typ
 
@@ -122,7 +119,7 @@ Persistence is not actually futile
 * Anlegen, Löschen, Indizieren, ... → Teuer!
 --
 
-* 
+* In-Place migrieren
 
 ```python
 obj = Workspace(workspace_type='generic')
@@ -175,11 +172,21 @@ if obj.workspace_type == 'generic':
 
 # Muster
 
-* Debugger in eine Instanz mit Fehler
-* Aber: Fehler weg
+* Was tun? Debugger in eine Instanz mit Fehler!
+--
+
+* Aber: Instanz herunter fahren, im Debug-Modus starten - Fehler weg
+--
+
 * WTF.
+--
+
 * 💡→ Instanz-Cache
+--
+
 * Persistenter Cache (.zec-Dateien) im Debug-Modus nicht benutzt
+--
+
 * Aber was stimmt denn nun nicht mit unseren Klassen?
 
 ---
@@ -207,7 +214,11 @@ if obj.workspace_type == 'generic':
 # Durchbruch
 
 * Gruppierungen implementiert als Relationen (z3c.relationfield)
+
+--
 * benutzen zope.intid um Objekte zu identifizieren
+
+--
 * intids sind zentral in einem IOBTree gespeichert
 
 --
@@ -219,6 +230,14 @@ if obj.workspace_type == 'generic':
 --
 
 * Ups! (Sollte GenericWorkspaceFolder sein)
+
+--
+
+```python
+>>> intids[123].getId()
+'my_generic_workspace'
+```
+
 --
 
 ```python
@@ -228,7 +247,7 @@ if obj.workspace_type == 'generic':
 * WTF.
 --
 
-* IOBTree enthält nicht die eigentlichen Objekte
+* 💡→ IOBTree enthält nicht die eigentlichen Objekte
 --
 
 * ... sondern Persistent References
@@ -241,9 +260,20 @@ if obj.workspace_type == 'generic':
 # Die Geister die ich rief
 
 * Objekte werden aus der ZODB zunächst als "Ghost" geladen
+
+--
+* Zustand im ZODB-Lebenszyklus (Ghost, Saved, Changed, etc.)
+
+--
 * Beinahe leere Hülle, keine Attribute
+
+--
 * Erst beim Zugriff auf ein Attribut wird der Rest nach geladen
+
+--
 * Beispiel: Plone-Portal wird voll geladen; Unterordner werden als Ghost geladen
+
+--
 * Spart Speicher und Netz-Bandbreite
 
 ---
@@ -251,22 +281,43 @@ if obj.workspace_type == 'generic':
 # Geister mit Klasse
 
 * Persistent References erlauben, "Ghosts" zu laden
+
+--
 * Minimale Informationen über das Objekt
-* Aber: Klasse wird gespeichert
+
+--
+* Aber: Klasse wird in der Referenz gespeichert
+
+--
 * Ghost hat bereits eine Klasse
-* Beim vollen Laden wird Klasse nicht aktualisiert
+
+--
+* Beim Nachladen wird Klasse nicht aktualisiert
+
+--
 * Unsere Migration: Klasse auf Objekt geändert, aber nicht auf Referenz
+
+--
 * → Laden über Referenz führt zu Fehlern (alte Klasse)
+
+--
 * Klasse landet im Cache der Instanz
+* → weitere Zugriffe führen wieder zu Fehlern
 
 ---
 
 # Reparatur
 
 * [zodbupdate](https://pypi.org/project/zodbupdate/) rettet uns
+
+--
 * Geht durch die Datenbank und aktualisiert Referenzen
+
+--
 * Bei uns: Keine 1:1 Ersetzung von Klassen
 * Workspace → GenericWorkspaceFolder, CommitteeWorkspaceFolder, ...
+
+--
 * Kleine [Anpassung](https://github.com/syslabcom/zodbupdate/commit/fbd537c992aec4c146cc7dd610e14d30b550f9b9) - Zuordnung von Klassen zu bekannten Objekten
 
 ---
@@ -274,7 +325,11 @@ if obj.workspace_type == 'generic':
 # Am Ziel
 
 * Wieder etwas gelernt
+
+--
 * Kenne deine Datenbank!
+
+--
 * Wisse, womit du davon kommen kannst!
 
 ---
@@ -285,10 +340,11 @@ Syslab.com - http://www.syslab.com/
 
 * Intranets
 * Gefährdungsbeurteilung
+* und mehr
 
 .center[![Syslab.com Logo](logo_syslabcom_smaller.jpg)]
 
-Titelbild credit: https://plainclothessuperheroes.wordpress.com/2012/03/01/a-supervillain-response-to-geek-showdown-star-trek-vs-star-wars/
+Titelbild Credit: https://plainclothessuperheroes.wordpress.com/2012/03/01/a-supervillain-response-to-geek-showdown-star-trek-vs-star-wars/
 
     </textarea>
 
