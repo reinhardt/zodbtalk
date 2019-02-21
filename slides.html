@@ -114,12 +114,22 @@ Persistence is not actually futile
 # Die Migration, Forts.
 
 * Standard: Neue Objekte anlegen, Daten rüber schreiben
+
+![Migration mit neuen Objekten](migration-copy-1.svg)
+
 --
 
 * Anlegen, Löschen, Indizieren, ... → Teuer!
---
+
+---
+
+# Die Migration, Forts.
 
 * In-Place migrieren
+
+![Migration In-Place](migration-inplace-1.svg)
+
+--
 
 ```python
 obj = Workspace(workspace_type='generic')
@@ -215,13 +225,22 @@ if obj.workspace_type == 'generic':
 
 * Gruppierungen implementiert als Relationen (z3c.relationfield)
 
---
+![Gruppierung als Relationsfeld](superspace-name-1.svg)
+
+---
+
+# Durchbruch, Forts.
+
 * benutzen zope.intid um Objekte zu identifizieren
 
 --
 * intids sind zentral in einem IOBTree gespeichert
 
---
+![Gruppierung via intids](superspace-intid-1.svg)
+
+---
+
+# Durchbruch, Forts.
 
 ```python
 >>> intids[123]
@@ -245,12 +264,22 @@ if obj.workspace_type == 'generic':
 <GenericWorkspaceFolder at 0x12345678>
 ```
 * WTF.
---
+
+---
+
+# Durchbruch, Forts.
 
 * 💡→ IOBTree enthält nicht die eigentlichen Objekte
---
+
+![Gruppierung via intids](superspace-intid-1.svg)
+
+---
+
+# Durchbruch, Forts.
 
 * ... sondern Persistent References
+
+![Gruppierung via Referenz](superspace-reference-1.svg)
 --
 
 * Diese erlauben, "Ghosts" zu laden
